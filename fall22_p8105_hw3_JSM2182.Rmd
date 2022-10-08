@@ -38,7 +38,9 @@ data("instacart")
 
 ## Problem 2
 
-_Office Hours_ how can i make leverage || , OR 
+_Office Hours_ 
+* how can i make leverage || , OR 
+* how to load a promise object and view it...
 
 ```{r}
 accel_df = 
