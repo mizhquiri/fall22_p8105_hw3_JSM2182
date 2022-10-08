@@ -36,5 +36,29 @@ library(p8105.datasets)
 data("instacart")
 ```
 
+## Problem 2
+
+_Office Hours_ how can i make leverage || , OR 
+
+```{r}
+accel_df = 
+  read_csv("./data/accel_data.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(
+    weekend = if_else(day == "Saturday", 1, if_else(day == "Sunday", 1, 0))
+  ) %>% 
+  select(
+    week, day_id, weekend, day, everything()
+  ) %>%
+  pivot_longer(
+    activity_1:activity_1440,
+    names_to = "min_24h",
+    values_to = "activity_count",
+    names_prefix = "activity_") %>% 
+  mutate(
+    min_24h = as.numeric(min_24h)
+  )
+
+```
 
 
