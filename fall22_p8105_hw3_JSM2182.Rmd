@@ -136,7 +136,7 @@ ny_noaa %>%
 
 There are `r nrow(ny_noaa)` observations and `r ncol(ny_noaa)` variables. Specifically, there is weather data, such as the ID, the date, the preceipitation, snow, snow and wind, max temperature and minimum temperature.In terms of missing data, however, it appears that the missing observeations are evenly distributed. 
 
-_OfficeHours q_ how to then inspect whether there are any other missings, proportions of missing to not missing
+_OfficeHours q_ how to then inspect whether there are any other missings, proportions of missing to not missing potential. Find out if assessment of missing data per & code makes sense 
 
 
 ```{r, echo = FALSE}
