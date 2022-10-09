@@ -42,7 +42,7 @@ _Office Hours_
 * how can i make leverage || , OR 
 * how to load a promise object and view it...
 
-```{r}
+```{r tidy_accel, echo = FALSE}
 accel_df = 
   read_csv("./data/accel_data.csv") %>% 
   janitor::clean_names() %>% 
@@ -58,9 +58,62 @@ accel_df =
     values_to = "activity_count",
     names_prefix = "activity_") %>% 
   mutate(
-    min_24h = as.numeric(min_24h)
-  )
+    min_24h = as.numeric(min_24h),
+    weekend = as.logical(weekend),
+    day = as.factor(day),
+    day = factor(day, levels = c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"))
+  ) %>% 
+  arrange(day_id, min_24h)
 
 ```
+
+ 
+```{r}
+head(accel_df)
+```
+
+There are `r nrow(accel_df)` observations. The variables in this dataset contain information on the sequential days (from days `r accel_df %>% pull(day_id) %>% min()` to `r accel_df %>% pull(day_id) %>% max()` and for each minute within each day). The accelerometer tracks activity which it quanitifies as activity counts. Based on the background information this is accelerometer data for a given individual diagnosed with CHD.
+
+_officehours_ how to fix axis, coding, because weekend should be a logical variable so i changed that but geom_path makes it look like something taht is not continuous per se... what would be the best way to mayube aartificially change the axis. using geom_path and weekend as a continuous variable would have also been interesting
+```{r group_accel}
+
+accel_df %>% 
+  group_by(
+    day) %>%
+  mutate(
+    total_activity_per_day = sum(activity_count, na.rm = TRUE)
+  ) %>% 
+  ggplot(
+    aes(x = day_id, y = total_activity_per_day, color = weekend)) + geom_point() + geom_smooth() + 
+  labs(
+    x = "Days",
+    y = "Total Activity Per Day",
+    title = "CHF Patient Activity Level Varies by Weekend and Stable by Weekday",
+    caption = "Data came from five weeks of accelerometer data collected on a 63 year-old male with BMI 25, who was admitted to the Advanced Cardiac Care Center of Columbia University Medical Center and diagnosed with congestive heart failure (CHF)"
+  )
+```
+The primary trend that is apparent is that the CHF patient has a higher overall activity level on weekdays relative to weekends. However, on Saturdays, activity levels drop and on Sundays activity levels are within range of weekday level activities, suggesting that Saturday is relatively a sedentary anomaly. 
+
+  weather_df %>% 
+  ggplot(aes(x = tmin, y = tmax, color = name)) + 
+  geom_point(alpha = .3) +
+  geom_smooth(se = FALSE) + #suppress error bars
+  facet_grid(name ~ .) #(row ~ column .) where . is for not faceting by anything leave blank
+  
+_Office hour_ where i would put the na.rm true for this graph
+```{r}
+accel_df %>% 
+  group_by(day) %>% 
+  ggplot(aes(x = day_id, y = activity_count, color = day)) + 
+  geom_point(alpha = .3) + geom_smooth(se = FALSE)+
+  labs(
+    x = "Days",
+    y = "Activity Counts",
+    title = "CHF Patient Activity Level Over time")
+  
+```
+
+The primary trend is that in some cases, particularly on Saturdays, it looks like the accelerometer was not or was hardly worn. Other than that, in reality, some Saturdays the patient did appear to be active. Wednesdays and Fridays do appear to be mroe consistently active than other times. 
+
 
 
