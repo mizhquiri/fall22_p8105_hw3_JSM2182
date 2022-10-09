@@ -92,20 +92,16 @@ accel_df %>%
     caption = "Data came from five weeks of accelerometer data collected on a 63 year-old male with BMI 25, who was admitted to the Advanced Cardiac Care Center of Columbia University Medical Center and diagnosed with congestive heart failure (CHF)"
   )
 ```
+
 The primary trend that is apparent is that the CHF patient has a higher overall activity level on weekdays relative to weekends. However, on Saturdays, activity levels drop and on Sundays activity levels are within range of weekday level activities, suggesting that Saturday is relatively a sedentary anomaly. 
 
-  weather_df %>% 
-  ggplot(aes(x = tmin, y = tmax, color = name)) + 
-  geom_point(alpha = .3) +
-  geom_smooth(se = FALSE) + #suppress error bars
-  facet_grid(name ~ .) #(row ~ column .) where . is for not faceting by anything leave blank
   
 _Office hour_ where i would put the na.rm true for this graph
 ```{r}
 accel_df %>% 
   group_by(day) %>% 
   ggplot(aes(x = day_id, y = activity_count, color = day)) + 
-  geom_point(alpha = .3) + geom_smooth(se = FALSE)+
+  geom_point(alpha = .3) + geom_smooth(se = FALSE) +
   labs(
     x = "Days",
     y = "Activity Counts",
