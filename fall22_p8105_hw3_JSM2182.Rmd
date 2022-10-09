@@ -112,4 +112,38 @@ accel_df %>%
 The primary trend is that in some cases, particularly on Saturdays, it looks like the accelerometer was not or was hardly worn. Other than that, in reality, some Saturdays the patient did appear to be active. Wednesdays and Fridays do appear to be mroe consistently active than other times. 
 
 
+## Problem 3
+
+```{r, echo = FALSE}
+library(p8105.datasets)
+data("ny_noaa")
+```
+
+```{r}
+ny_noaa %>% 
+  group_by(id) %>%
+  filter(
+      is.na(prcp),
+      is.na(snow),
+      is.na(snwd),
+      is.na(tmax),
+      is.na(tmin)) %>% 
+  summarize(
+  across(prcp:tmin, n_distinct)) %>% 
+  arrange(prcp, snow, snwd, tmax, tmin)
+
+```
+
+There are `r nrow(ny_noaa)` observations and `r ncol(ny_noaa)` variables. Specifically, there is weather data, such as the ID, the date, the preceipitation, snow, snow and wind, max temperature and minimum temperature.In terms of missing data, however, it appears that the missing observeations are evenly distributed. 
+
+_OfficeHours q_ how to then inspect whether there are any other missings, proportions of missing to not missing
+
+
+```{r, echo = FALSE}
+ny_noaa_tidy = 
+  ny_noaa %>%
+  janitor::clean_names() %>%
+  separate(date, into = c("year", "month", "day"), sep = "-") 
+```
+
 
