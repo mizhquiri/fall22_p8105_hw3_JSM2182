@@ -143,7 +143,34 @@ _OfficeHours q_ how to then inspect whether there are any other missings, propor
 ny_noaa_tidy = 
   ny_noaa %>%
   janitor::clean_names() %>%
-  separate(date, into = c("year", "month", "day"), sep = "-") 
+  separate(date, into = c("year", "month", "day"), sep = "-") %>% 
+  mutate(
+    year = as.integer(year),
+    month = as.factor(month),
+    day = as.integer(day),
+    snow = as.numeric(snow),
+    prcp = as.numeric(prcp),
+    snwd = as.numeric(snwd),
+    tmin = as.numeric(tmin),
+    tmax = as.numeric(tmax)
+  )
+```
+
+
+```{r}
+
+ny_noaa_tidy %>% 
+  group_by(id, year) %>%
+  drop_na(snow) %>% 
+  mutate(
+    rank_snow = min_rank(snow)
+  ) %>% 
+  select(id, year, month, day, snow, rank_snow) %>% 
+  summarize(rank_snow, snow
+  ) %>% 
+  arrange(rank_snow)
+
+
 ```
 
 
