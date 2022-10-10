@@ -160,17 +160,14 @@ ny_noaa_tidy =
 ```{r}
 
 ny_noaa_tidy %>% 
-  group_by(id, year) %>%
   drop_na(snow) %>% 
   mutate(
     rank_snow = min_rank(snow)
   ) %>% 
-  select(id, year, month, day, snow, rank_snow) %>% 
-  summarize(rank_snow, snow
-  ) %>% 
-  arrange(rank_snow)
-
+  select(id, year, month, day, snow, rank_snow) %>%
+  ggplot(aes(x = rank_snow)) + geom_histogram()
 
 ```
+
 
 
