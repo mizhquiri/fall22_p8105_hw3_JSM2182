@@ -119,22 +119,39 @@ library(p8105.datasets)
 data("ny_noaa")
 ```
 
-```{r}
+
+```{r, eval = FALSE}
+
 ny_noaa %>% 
-  group_by(id) %>%
   filter(
-      is.na(prcp),
+      is.na(prcp), 
       is.na(snow),
       is.na(snwd),
       is.na(tmax),
       is.na(tmin)) %>% 
   summarize(
-  across(prcp:tmin, n_distinct)) %>% 
-  arrange(prcp, snow, snwd, tmax, tmin)
+  count(tmin)) 
 
 ```
 
-There are `r nrow(ny_noaa)` observations and `r ncol(ny_noaa)` variables. Specifically, there is weather data, such as the ID, the date, the preceipitation, snow, snow and wind, max temperature and minimum temperature.In terms of missing data, however, it appears that the missing observeations are evenly distributed. 
+
+```{r}
+ny_noaa %>%
+  summarize(mean(prcp, na.rm = TRUE))
+```
+
+
+There are `r nrow(ny_noaa)` observations and `r ncol(ny_noaa)` variables. Specifically, there is weather data, such as the ID, the date, the preceipitation, snow, snow and wind, max temperature and minimum temperature.In terms of missing data, there are `r nrow(
+  ny_noaa %>% 
+  filter(
+      is.na(prcp), 
+      is.na(snow),
+      is.na(snwd),
+      is.na(tmax),
+      is.na(tmin)) %>% 
+  summarize(
+  across(prcp:tmin)) %>% 
+  arrange(prcp, snow, snwd, tmax, tmin))` rows containing missing information. 
 
 _OfficeHours q_ how to then inspect whether there are any other missings, proportions of missing to not missing potential. Find out if assessment of missing data per & code makes sense 
 
@@ -156,6 +173,25 @@ ny_noaa_tidy =
   )
 ```
 
+```{r}
+ny_noaa_tidy %>% 
+  count(
+    snow) %>% 
+  arrange(desc(n))
+  
+  
+```
+
+For snowfall, what are the most commonly observed values? 
+```{r}
+
+ny_noaa_tidy %>% 
+  drop_na(snow) %>% 
+  select(id, year, month, day, snow) %>%
+  ggplot(aes(x = snow)) + geom_histogram()
+
+
+```
 
 ```{r}
 
@@ -163,11 +199,21 @@ ny_noaa_tidy %>%
   drop_na(snow) %>% 
   mutate(
     rank_snow = min_rank(snow)
-  ) %>% 
-  select(id, year, month, day, snow, rank_snow) %>%
-  ggplot(aes(x = rank_snow)) + geom_histogram()
+  ) %>%
+  select(
+    rank_snow, snow, everything()) %>% 
+  arrange(rank_snow, snow) 
 
 ```
 
+```{r}
+ny_noaa_tidy %>% 
+  drop_na(snow) %>% 
+  mutate(
+    rank_snow = min_rank(snow)
+  ) %>% 
+  select(id, year, month, day, snow, rank_snow) %>%
+  ggplot(aes(x = rank_snow)) + geom_histogram()
+```
 
 
