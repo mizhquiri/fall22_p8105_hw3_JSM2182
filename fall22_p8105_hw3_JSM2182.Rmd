@@ -92,6 +92,9 @@ accel_df %>%
     caption = "Data came from five weeks of accelerometer data collected on a 63 year-old male with BMI 25, who was admitted to the Advanced Cardiac Care Center of Columbia University Medical Center and diagnosed with congestive heart failure (CHF)"
   )
 ```
+```{r, eval = FALSE}
+grouped by daysummarized by total count.fields(knitr::kable)
+```
 
 The primary trend that is apparent is that the CHF patient has a higher overall activity level on weekdays relative to weekends. However, on Saturdays, activity levels drop and on Sundays activity levels are within range of weekday level activities, suggesting that Saturday is relatively a sedentary anomaly. 
 
@@ -135,9 +138,13 @@ ny_noaa %>%
 ```
 
 
-```{r}
+```{r, eval = FALSE}
 ny_noaa %>%
   summarize(mean(prcp, na.rm = TRUE))
+```
+```{r}
+ny_noaa %>% summary()
+  
 ```
 
 
@@ -173,6 +180,7 @@ ny_noaa_tidy =
   )
 ```
 
+Answers what is the most frequently occurring value of the snow
 ```{r}
 ny_noaa_tidy %>% 
   count(
@@ -206,7 +214,7 @@ ny_noaa_tidy %>%
 
 ```
 
-```{r}
+```{r eval = FALSE}
 ny_noaa_tidy %>% 
   drop_na(snow) %>% 
   mutate(
@@ -216,4 +224,49 @@ ny_noaa_tidy %>%
   ggplot(aes(x = rank_snow)) + geom_histogram()
 ```
 
+
+```{r}
+ny_noaa_tidy %>%
+  group_by(month) %>% 
+  filter(
+    month == "January",
+    month == "July"
+  )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  ggplot(aes(x = tmin, y = tmax, color = name)) +
+  geom_point(alpha = 0.5) + 
+  labs(
+    x = "Mininum Daily Temp (C)",
+    y = "Maximum Daily Temp (C)",
+    title = "Scatterplot of daily temp extremes",
+    caption = "Data came from the Rnooa package") +
+  scale_x_continuous(
+    breaks = c(-10, 0, 15), #axes labels
+    labels = c("-10C", "0", "15")  #labels are set as characters 
+  ) 
+
+ny_noaa_tidy %>% 
+  
+```
 
