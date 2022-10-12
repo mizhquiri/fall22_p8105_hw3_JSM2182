@@ -30,7 +30,7 @@ scale_fill_discrete = scale_fill_viridis_d
 ## Problem 1
 
 Loaded instacart data
-```{r, echo = FALSE}
+```{r, eval = FALSE}
 
 library(p8105.datasets)
 data("instacart")
@@ -40,7 +40,6 @@ data("instacart")
 
 _Office Hours_ 
 * how can i make leverage || , OR 
-* how to load a promise object and view it...
 
 ```{r tidy_accel, echo = FALSE}
 accel_df = 
@@ -123,44 +122,17 @@ data("ny_noaa")
 ```
 
 
-```{r, eval = FALSE}
-
-ny_noaa %>% 
-  filter(
-      is.na(prcp), 
-      is.na(snow),
-      is.na(snwd),
-      is.na(tmax),
-      is.na(tmin)) %>% 
-  summarize(
-  count(tmin)) 
-
-```
 
 
-```{r, eval = FALSE}
-ny_noaa %>%
-  summarize(mean(prcp, na.rm = TRUE))
-```
 ```{r}
 ny_noaa %>% summary()
   
 ```
 
 
-There are `r nrow(ny_noaa)` observations and `r ncol(ny_noaa)` variables. Specifically, there is weather data, such as the ID, the date, the preceipitation, snow, snow and wind, max temperature and minimum temperature.In terms of missing data, there are `r nrow(
-  ny_noaa %>% 
-  filter(
-      is.na(prcp), 
-      is.na(snow),
-      is.na(snwd),
-      is.na(tmax),
-      is.na(tmin)) %>% 
-  summarize(
-  across(prcp:tmin)) %>% 
-  arrange(prcp, snow, snwd, tmax, tmin))` rows containing missing information. 
+There are `r nrow(ny_noaa)` observations and `r ncol(ny_noaa)` variables. Specifically, there is weather data, such as the ID, the date, the preceipitation, snow, snow and wind, max temperature and minimum temperature.In terms of missing data, there are _____ rows containing missing information. 
 
-_OfficeHours q_ how to then inspect whether there are any other missings, proportions of missing to not missing potential. Find out if assessment of missing data per & code makes sense 
+_OfficeHours q_ how to then inspect whether there are any other missings, proportions of missing to not missing potential. Find out if assessment of missing data per & code makes sense. answered. 
 
 
 ```{r, echo = FALSE}
@@ -176,11 +148,34 @@ ny_noaa_tidy =
     prcp = as.numeric(prcp),
     snwd = as.numeric(snwd),
     tmin = as.numeric(tmin),
-    tmax = as.numeric(tmax)
+    tmax = as.numeric(tmax),
+    snow = snow * 10,
+    snwd = snwd * 10,
+    prcp = prcp * 100,
+    tmax = tmax * 10, 
+    tmin = tmin * 10) %>% 
+  mutate(
+    month = recode
+      (month, 
+        "01" = "January",
+        "02" = "February", 
+        "03" = "March", 
+        "04" = "April", 
+        "05" = "May", 
+        "06" = "June", 
+        "07" = "July", 
+        "08" = "August", 
+        "09" = "September", 
+        "10" = "October", 
+        "11" = "November", 
+        "12" = "December"),
+    month = factor(month, levels = c("January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"))
   )
+  
+
 ```
 
-Answers what is the most frequently occurring value of the snow
+For snowfall, what are the most commonly observed values? 
 ```{r}
 ny_noaa_tidy %>% 
   count(
@@ -190,83 +185,28 @@ ny_noaa_tidy %>%
   
 ```
 
-For snowfall, what are the most commonly observed values? 
-```{r}
 
-ny_noaa_tidy %>% 
-  drop_na(snow) %>% 
-  select(id, year, month, day, snow) %>%
-  ggplot(aes(x = snow)) + geom_histogram()
-
-
-```
-
-```{r}
-
-ny_noaa_tidy %>% 
-  drop_na(snow) %>% 
-  mutate(
-    rank_snow = min_rank(snow)
-  ) %>%
-  select(
-    rank_snow, snow, everything()) %>% 
-  arrange(rank_snow, snow) 
-
-```
-
-```{r eval = FALSE}
-ny_noaa_tidy %>% 
-  drop_na(snow) %>% 
-  mutate(
-    rank_snow = min_rank(snow)
-  ) %>% 
-  select(id, year, month, day, snow, rank_snow) %>%
-  ggplot(aes(x = rank_snow)) + geom_histogram()
-```
-
-
-```{r}
-ny_noaa_tidy %>%
-  group_by(month) %>% 
-  filter(
-    month == "January",
-    month == "July"
-  )
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  ggplot(aes(x = tmin, y = tmax, color = name)) +
-  geom_point(alpha = 0.5) + 
+Make a two-panel plot showing the average max temperature in January and in July in each station across years. Is there any observable / interpretable structure? Any outliers?
++ 
   labs(
-    x = "Mininum Daily Temp (C)",
+    x = "Years",
     y = "Maximum Daily Temp (C)",
-    title = "Scatterplot of daily temp extremes",
+    title = "Scatterplot of daily temp extremes in June and July",
     caption = "Data came from the Rnooa package") +
-  scale_x_continuous(
-    breaks = c(-10, 0, 15), #axes labels
-    labels = c("-10C", "0", "15")  #labels are set as characters 
-  ) 
 
-ny_noaa_tidy %>% 
-  
+Make a two-panel plot showing the average max temperature in January and in July in each station across years. Is there any observable / interpretable structure? Any outliers?
+```{r, eval = FALSE}
+ny_noaa_tidy %>%
+    filter(
+    month %in% c("January","July")) %>% 
+  group_by(month, year, id) %>% 
+  summarize(
+    tmax_mean = mean(tmax, na.rm = TRUE)
+  ) %>% 
+  ggplot(aes(x = year, y = tmax_mean, color = id)) +
+  geom_bar(alpha = 0.5) +
+  facet_grid(.~month) 
+
 ```
+
 
