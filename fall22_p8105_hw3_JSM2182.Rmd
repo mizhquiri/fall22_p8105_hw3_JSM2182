@@ -35,8 +35,7 @@ scale_fill_discrete = scale_fill_viridis_d
 
 ## Problem 2
 
-_Office Hours_ 
-* how can i make leverage || , OR 
+
 
 ```{r tidy_accel, echo = FALSE}
 accel_df = 
@@ -68,10 +67,12 @@ accel_df =
 head(accel_df)
 ```
 
-There are `r nrow(accel_df)` observations. The variables in this dataset contain information on the sequential days (from days `r accel_df %>% pull(day_id) %>% min()` to `r accel_df %>% pull(day_id) %>% max()` and for each minute within each day). The accelerometer tracks activity which it quanitifies as activity counts. Based on the background information this is accelerometer data for a given individual diagnosed with CHD.
+The above is a snapshot of accelerometer data collected for a given individual diagnosed with CHD.There are `r nrow(accel_df)` observations. The variables in this dataset contain information on the sequential days (from days `r accel_df %>% pull(day_id) %>% min()` to `r accel_df %>% pull(day_id) %>% max()` and for each minute within each day). The accelerometer tracks activity which it quantifies as activity counts. 
 
 _officehours_ how to fix axis, coding, because weekend should be a logical variable so i changed that but geom_path makes it look like something taht is not continuous per se... what would be the best way to mayube aartificially change the axis. using geom_path and weekend as a continuous variable would have also been interesting
-```{r group_accel}
+
+
+```{r group_accel, eval = FALSE}
 
 accel_df %>% 
   group_by(
@@ -88,27 +89,50 @@ accel_df %>%
     caption = "Data came from five weeks of accelerometer data collected on a 63 year-old male with BMI 25, who was admitted to the Advanced Cardiac Care Center of Columbia University Medical Center and diagnosed with congestive heart failure (CHF)"
   )
 ```
-```{r, eval = FALSE}
-grouped by daysummarized by total count.fields(knitr::kable)
-```
 
-The primary trend that is apparent is that the CHF patient has a higher overall activity level on weekdays relative to weekends. However, on Saturdays, activity levels drop and on Sundays activity levels are within range of weekday level activities, suggesting that Saturday is relatively a sedentary anomaly. 
 
-  
-_Office hour_ where i would put the na.rm true for this graph
+
+
 ```{r}
 accel_df %>% 
-  group_by(day) %>% 
-  ggplot(aes(x = day_id, y = activity_count, color = day)) + 
-  geom_point(alpha = .3) + geom_smooth(se = FALSE) +
-  labs(
-    x = "Days",
-    y = "Activity Counts",
-    title = "CHF Patient Activity Level Over time")
-  
+  group_by(day, week) %>%
+  summarize(
+    total_activity_per_day = sum(activity_count, na.rm = TRUE)
+  ) %>% #observations
+  knitr::kable(digits = 2)
 ```
 
-The primary trend is that in some cases, particularly on Saturdays, it looks like the accelerometer was not or was hardly worn. Other than that, in reality, some Saturdays the patient did appear to be active. Wednesdays and Fridays do appear to be mroe consistently active than other times. 
+
+```{r}
+accel_df %>% 
+  group_by(day, week) %>%
+  summarize(
+    total_activity_per_day = sum(activity_count, na.rm = TRUE)
+  ) %>% 
+  pivot_wider(
+    names_from = "day", 
+    values_from = "total_activity_per_day") %>% 
+  knitr::kable(digits = 2)
+```
+
+There are a few observable trend. As the weeks advanced, the patients activity level tended to remain stable on Mondays - Thursdays. From a given Friday to the next Friday (with one exception), activity levels overall seemed to increase. From a given Saturday to the following Saturday, it is possible that the patient may have neglected to wear the accelerometer due to the markedly decreased number of steps in the last two weeks relative to the precedeing three weeks. On Sundays, the activity levels also appeared to decrease although the accelerometer appeared to still be worn. Of course, given that the data collection is dependent on participant adherence to wearing an accelerometer 24 hours a day, this data is a best guess snapshot. To better inspect the missings a different visual format would be helpful. 
+
+```{r}
+accel_df %>% 
+  group_by(min_24h, day) %>% 
+  ggplot(aes(x = min_24h, y = activity_count, color = day)) + 
+  geom_point(alpha = .3) +
+  labs(
+    x = "Minutes in a Day",
+    y = "Activity Counts",
+    title = "CHF Patient Activity Level Over the Course of a Day") + 
+  scale_x_continuous(
+    breaks = c(0, 200, 400, 600, 800, 1000, 1200, 1400), 
+    limits = c(0, 1440) 
+    )
+```
+
+The patient's activity level/score did not exceed 2500 per minute across most days. The patient was more active after 6AM overall, and tended to break the 2500 threshold particularly around 700 minutes, 10000 minutes, and 12000 minutes. These were more likely to occur on Sundays, Saturdays, Wednesdays, and Fridays. 
 
 
 ## Problem 3
@@ -117,14 +141,16 @@ The primary trend is that in some cases, particularly on Saturdays, it looks lik
 
 
 ```{r}
-ny_noaa %>% summary()
+ny_noaa %>% 
+  mutate(
+    tmax = as.numeric(tmax),
+    tmin = as.numeric(tmin)) %>% 
+  summary()
   
 ```
 
 
-There are `r nrow(ny_noaa)` observations and `r ncol(ny_noaa)` variables. Specifically, there is weather data, such as the ID, the date, the preceipitation, snow, snow and wind, max temperature and minimum temperature.In terms of missing data, there are _____ rows containing missing information. 
-
-_OfficeHours q_ how to then inspect whether there are any other missings, proportions of missing to not missing potential. Find out if assessment of missing data per & code makes sense. answered. 
+There are `r nrow(ny_noaa)` observations and `r ncol(ny_noaa)` variables. Specifically, there is weather data, such as the ID, the date, the precipitation, snow, snow and wind, max temperature and minimum temperature.In terms of missing data, snow depth (`snwd`) has the largest proportion of missing data relative to snow, precipitation, tmax, and tmin. There are 591786 missing values for snwd, 381221 missing values for snow, 145838 missing values for precipitation, 1134358 missing values for maximum temperature, and 1134420 missing values for minimum temperature.
 
 
 ```{r, echo = FALSE}
@@ -172,25 +198,23 @@ For snowfall, what are the most commonly observed values?
 ny_noaa_tidy %>% 
   count(
     snow) %>% 
-  arrange(desc(n)) %>% 
-  mutate(
-    snow = snow/10
-  )
-  
-  
+  arrange(desc(n)) 
+
+```
+```{r}
+
+ny_noaa_tidy %>% 
+  group_by(snow) %>% 
+  summarize(
+     n_obs = n()) %>% 
+  arrange(desc(n_obs))
 ```
 
+  * The most commonly observed value of snow is 0cm (also: 0 mm)
+  
 
 Make a two-panel plot showing the average max temperature in January and in July in each station across years. Is there any observable / interpretable structure? Any outliers?
-+ 
-  labs(
-    x = "Years",
-    y = "Maximum Daily Temp (C)",
-    title = "Scatterplot of daily temp extremes in June and July",
-    caption = "Data came from the Rnooa package") +
-
-Make a two-panel plot showing the average max temperature in January and in July in each station across years. Is there any observable / interpretable structure? Any outliers?
-```{r, eval = FALSE}
+```{r}
 ny_noaa_tidy %>%
     filter(
     month %in% c("January","July")) %>% 
@@ -199,41 +223,57 @@ ny_noaa_tidy %>%
     tmax_mean = mean(tmax, na.rm = TRUE)
   ) %>% 
   ggplot(aes(x = year, y = tmax_mean, group = id, color = tmax_mean)) +
+  scale_x_continuous(
+    breaks = c(1980, 1990, 2000, 2010),
+    labels = c("1980", "1990", "2000", "2010")) +
   geom_line(alpha = 0.5) +
+  labs(
+    x = "Years",
+    y = "Maximum Daily Temp (C)",
+    title = "Line Graphs of daily temp extremes in June and July",
+    caption = "Data came from the Rnooa package",
+    linetype = "Max Temp (C)") + 
+
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)) + 
+  theme(legend.position = "right") + 
   facet_grid(. ~ month) 
 
+
 ```
+
+
+
 
 Make a two-panel plot showing (i) tmax vs tmin for the full dataset (note that a scatterplot may not be the best option); 
 _office hours_ what is group = doing how do i differentiate the different Ids
 
-If i don't add id then it is more diffuse
 ```{r}
-
-tmax_noaa = 
+tmax_noaa_plot = 
   ny_noaa_tidy %>%
-  group_by(month, year, id) %>% 
-  summarize(
-    tmax_mean = mean(tmax, na.rm = TRUE),
-    tmin_mean = mean(tmin, na.rm = TRUE)
-  ) %>% 
-  ggplot(aes(x = year, y = tmax_mean, color = month)) +
-  geom_smooth(alpha = 0.5)
+  group_by(year) %>% 
+  ggplot(aes(x = year, y = tmax, group = year)) +
+  geom_smooth(alpha = 0.5, na.rm = TRUE) + 
+  scale_y_continuous(
+    limits = c(100, 1500)
+  ) 
 
-tmin_noaa =
+
+
+tmin_noaa_plot =
   ny_noaa_tidy %>%
-  group_by(month, year, id) %>% 
-  summarize(
-    tmax_mean = mean(tmax, na.rm = TRUE),
-    tmin_mean = mean(tmin, na.rm = TRUE)
-  ) %>% 
-  ggplot(aes(x = year, y = tmin_mean, color = month)) +
-  geom_smooth(alpha = 0.5)
+  group_by(year) %>% 
+  ggplot(aes(x = year, y = tmin, group = year)) +
+  geom_smooth(alpha = 0.5, na.rm = TRUE) +
+  scale_y_continuous(
+  limits = c(100, 1500)) 
 
-tmax_noaa + tmin_noaa
 
+tmax_noaa_plot + tmin_noaa_plot
+      
 
 ```
+
+
 
 and (ii) make a plot showing the distribution of snowfall values greater than 0 and less than 100 separately by year
   ggplot(aes(x = year, y = snow)) +
@@ -256,6 +296,7 @@ ny_noaa_tidy %>%
 
 ```
 
+
 ```{r}
 ny_noaa_tidy %>% 
   group_by(year) %>% 
@@ -265,10 +306,11 @@ ny_noaa_tidy %>%
   filter(
     between(
       snow,0,100),
-    !snow %in% c(0,100)
+    !(snow %in% c(0,100))
     ) %>% 
-  ggplot(aes(x = year, y = snow)) +
-  geom_smooth(alpha = 0.5)
+  ggplot(aes(x = year, y = snow, group = year)) +
+  geom_boxplot(alpha = 0.5)
+  
   
 ```
 
