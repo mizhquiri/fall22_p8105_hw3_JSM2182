@@ -9,6 +9,9 @@ output: github_document
 library(tidyverse)
 library(ggridges)
 library(patchwork)
+library(p8105.datasets)
+data("ny_noaa")
+data("instacart")
 
 knitr::opts_chunk$set(
   fig.width = 6,
@@ -29,12 +32,6 @@ scale_fill_discrete = scale_fill_viridis_d
 
 ## Problem 1
 
-Loaded instacart data
-```{r, eval = FALSE}
-
-library(p8105.datasets)
-data("instacart")
-```
 
 ## Problem 2
 
@@ -116,11 +113,6 @@ The primary trend is that in some cases, particularly on Saturdays, it looks lik
 
 ## Problem 3
 
-```{r, echo = FALSE}
-library(p8105.datasets)
-data("ny_noaa")
-```
-
 
 
 
@@ -180,7 +172,10 @@ For snowfall, what are the most commonly observed values?
 ny_noaa_tidy %>% 
   count(
     snow) %>% 
-  arrange(desc(n))
+  arrange(desc(n)) %>% 
+  mutate(
+    snow = snow/10
+  )
   
   
 ```
@@ -203,10 +198,77 @@ ny_noaa_tidy %>%
   summarize(
     tmax_mean = mean(tmax, na.rm = TRUE)
   ) %>% 
-  ggplot(aes(x = year, y = tmax_mean, color = id)) +
-  geom_bar(alpha = 0.5) +
-  facet_grid(.~month) 
+  ggplot(aes(x = year, y = tmax_mean, group = id, color = tmax_mean)) +
+  geom_line(alpha = 0.5) +
+  facet_grid(. ~ month) 
 
 ```
 
+Make a two-panel plot showing (i) tmax vs tmin for the full dataset (note that a scatterplot may not be the best option); 
+_office hours_ what is group = doing how do i differentiate the different Ids
+
+If i don't add id then it is more diffuse
+```{r}
+
+tmax_noaa = 
+  ny_noaa_tidy %>%
+  group_by(month, year, id) %>% 
+  summarize(
+    tmax_mean = mean(tmax, na.rm = TRUE),
+    tmin_mean = mean(tmin, na.rm = TRUE)
+  ) %>% 
+  ggplot(aes(x = year, y = tmax_mean, color = month)) +
+  geom_smooth(alpha = 0.5)
+
+tmin_noaa =
+  ny_noaa_tidy %>%
+  group_by(month, year, id) %>% 
+  summarize(
+    tmax_mean = mean(tmax, na.rm = TRUE),
+    tmin_mean = mean(tmin, na.rm = TRUE)
+  ) %>% 
+  ggplot(aes(x = year, y = tmin_mean, color = month)) +
+  geom_smooth(alpha = 0.5)
+
+tmax_noaa + tmin_noaa
+
+
+```
+
+and (ii) make a plot showing the distribution of snowfall values greater than 0 and less than 100 separately by year
+  ggplot(aes(x = year, y = snow)) +
+  geom_point(alpha = 0.5)
+
+```{r}
+ny_noaa_tidy %>% 
+  group_by(year) %>% 
+  mutate(
+    snow = snow/10
+  ) %>% 
+  filter(
+    between(
+      snow,0,100),
+    !snow %in% c(0,100)
+    ) %>% 
+  ggplot(aes(x = year, y = snow)) +
+  geom_point(alpha = 0.5)
+  
+
+```
+
+```{r}
+ny_noaa_tidy %>% 
+  group_by(year) %>% 
+  mutate(
+    snow = snow/10
+  ) %>% 
+  filter(
+    between(
+      snow,0,100),
+    !snow %in% c(0,100)
+    ) %>% 
+  ggplot(aes(x = year, y = snow)) +
+  geom_smooth(alpha = 0.5)
+  
+```
 
