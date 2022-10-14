@@ -115,7 +115,7 @@ accel_df %>%
   knitr::kable(digits = 2)
 ```
 
-There are a few observable trend. As the weeks advanced, the patients activity level tended to remain stable on Mondays - Thursdays. From a given Friday to the next Friday (with one exception), activity levels overall seemed to increase. From a given Saturday to the following Saturday, it is possible that the patient may have neglected to wear the accelerometer due to the markedly decreased number of steps in the last two weeks relative to the precedeing three weeks. On Sundays, the activity levels also appeared to decrease although the accelerometer appeared to still be worn. Of course, given that the data collection is dependent on participant adherence to wearing an accelerometer 24 hours a day, this data is a best guess snapshot. To better inspect the missings a different visual format would be helpful. 
+There are a few observable trends. As the weeks advanced, the patients activity level tended to remain stable on Mondays - Thursdays. From a given Friday to the next Friday (with one exception), activity levels overall seemed to increase. From a given Saturday to the following Saturday, it is possible that the patient may have neglected to wear the accelerometer due to the markedly decreased number of steps in the last two weeks relative to the precedeing three weeks. On Sundays, the activity levels also appeared to decrease although the accelerometer appeared to still be worn. Of course, given that the data collection is dependent on participant adherence to wearing an accelerometer 24 hours a day, this data is a best guess snapshot. To better inspect the missings a different visual format would be helpful. 
 
 ```{r}
 accel_df %>% 
@@ -127,12 +127,15 @@ accel_df %>%
     y = "Activity Counts",
     title = "CHF Patient Activity Level Over the Course of a Day") + 
   scale_x_continuous(
-    breaks = c(0, 200, 400, 600, 800, 1000, 1200, 1400), 
+    breaks = c(0, 180, 360, 540, 720, 900, 1080, 1260, 1440), 
+    labels = c("12AM", "3AM", "6AM", "9AM", "12PM", "3PM", "6PM","9PM", "12AM +D"),
     limits = c(0, 1440) 
     )
 ```
 
-The patient's activity level/score did not exceed 2500 per minute across most days. The patient was more active after 6AM overall, and tended to break the 2500 threshold particularly around 700 minutes, 10000 minutes, and 12000 minutes. These were more likely to occur on Sundays, Saturdays, Wednesdays, and Fridays. 
+
+
+The patient's activity level/score did not exceed 2500 per minute across most days. The patient was more active after 6AM overall, and tended to break the 2500 threshold particularly around or before 12PM, or around 4PM or around 9PM.These were more likely to occur on Sundays, Saturdays, Wednesdays, and Fridays. 
 
 
 ## Problem 3
@@ -214,6 +217,8 @@ ny_noaa_tidy %>%
   
 
 Make a two-panel plot showing the average max temperature in January and in July in each station across years. Is there any observable / interpretable structure? Any outliers?
+
+
 ```{r}
 ny_noaa_tidy %>%
     filter(
@@ -232,73 +237,48 @@ ny_noaa_tidy %>%
     y = "Maximum Daily Temp (C)",
     title = "Line Graphs of daily temp extremes in June and July",
     caption = "Data came from the Rnooa package",
-    linetype = "Max Temp (C)") + 
-
+    color = "Max Temp (C)"
+    ) +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)) + 
   theme(legend.position = "right") + 
   facet_grid(. ~ month) 
-
 
 ```
 
 
 
+_Trends observed_
+In general, m
 
 Make a two-panel plot showing (i) tmax vs tmin for the full dataset (note that a scatterplot may not be the best option); 
 _office hours_ what is group = doing how do i differentiate the different Ids
 
-```{r}
-tmax_noaa_plot = 
+```{r, echo = FALSE}
+temp_noaa_plot = 
   ny_noaa_tidy %>%
   group_by(year) %>% 
-  ggplot(aes(x = year, y = tmax, group = year)) +
-  geom_smooth(alpha = 0.5, na.rm = TRUE) + 
+  ggplot(aes(x = tmin, y = tmax, group = year)) +
+  geom_hex(alpha = 0.5, na.rm = TRUE) + 
   scale_y_continuous(
-    limits = c(100, 1500)
+    limits = c(100, 1500)) + 
+  labs(
+    x = "Minimum Daily Temp (C)",
+    y = "Maximum Daily Temp (C)",
+    title = "Hex Plot Comparing Daily Temperature Highs and Lows",
+    caption = "Data came from the Rnooa package"
   ) 
-
-
-
-tmin_noaa_plot =
-  ny_noaa_tidy %>%
-  group_by(year) %>% 
-  ggplot(aes(x = year, y = tmin, group = year)) +
-  geom_smooth(alpha = 0.5, na.rm = TRUE) +
-  scale_y_continuous(
-  limits = c(100, 1500)) 
-
-
-tmax_noaa_plot + tmin_noaa_plot
-      
 
 ```
 
 
 
 and (ii) make a plot showing the distribution of snowfall values greater than 0 and less than 100 separately by year
-  ggplot(aes(x = year, y = snow)) +
-  geom_point(alpha = 0.5)
-
-```{r}
-ny_noaa_tidy %>% 
-  group_by(year) %>% 
-  mutate(
-    snow = snow/10
-  ) %>% 
-  filter(
-    between(
-      snow,0,100),
-    !snow %in% c(0,100)
-    ) %>% 
-  ggplot(aes(x = year, y = snow)) +
-  geom_point(alpha = 0.5)
-  
-
-```
 
 
-```{r}
-ny_noaa_tidy %>% 
+
+```{r, echo = FALSE}
+snow_plot = 
+  ny_noaa_tidy %>% 
   group_by(year) %>% 
   mutate(
     snow = snow/10
@@ -309,8 +289,17 @@ ny_noaa_tidy %>%
     !(snow %in% c(0,100))
     ) %>% 
   ggplot(aes(x = year, y = snow, group = year)) +
-  geom_boxplot(alpha = 0.5)
+  geom_boxplot(alpha = 0.5) + 
+  labs(
+    x = "Year",
+    y = "Snow (mm)",
+    title = "Distribution of Snow Samples greater than 0 but lower than 100",
+    caption = "Data came from the Rnooa package")
   
   
+```
+
+```{r}
+snow_plot / temp_noaa_plot 
 ```
 
