@@ -5,7 +5,7 @@ output: github_document
 ---
 
 
-```{r, echo = FALSE}
+```{r, echo = FALSE, message = FALSE}
 library(tidyverse)
 library(ggridges)
 library(patchwork)
@@ -37,7 +37,7 @@ scale_fill_discrete = scale_fill_viridis_d
 
 
 
-```{r tidy_accel, echo = FALSE}
+```{r tidy_accel, echo = FALSE, message = FALSE}
 accel_df = 
   read_csv("./data/accel_data.csv") %>% 
   janitor::clean_names() %>% 
@@ -67,43 +67,12 @@ accel_df =
 head(accel_df)
 ```
 
-The above is a snapshot of accelerometer data collected for a given individual diagnosed with CHD.There are `r nrow(accel_df)` observations. The variables in this dataset contain information on the sequential days (from days `r accel_df %>% pull(day_id) %>% min()` to `r accel_df %>% pull(day_id) %>% max()` and for each minute within each day). The accelerometer tracks activity which it quantifies as activity counts. 
-
-_officehours_ how to fix axis, coding, because weekend should be a logical variable so i changed that but geom_path makes it look like something taht is not continuous per se... what would be the best way to mayube aartificially change the axis. using geom_path and weekend as a continuous variable would have also been interesting
-
-
-```{r group_accel, eval = FALSE}
-
-accel_df %>% 
-  group_by(
-    day) %>%
-  mutate(
-    total_activity_per_day = sum(activity_count, na.rm = TRUE)
-  ) %>% 
-  ggplot(
-    aes(x = day_id, y = total_activity_per_day, color = weekend)) + geom_point() + geom_smooth() + 
-  labs(
-    x = "Days",
-    y = "Total Activity Per Day",
-    title = "CHF Patient Activity Level Varies by Weekend and Stable by Weekday",
-    caption = "Data came from five weeks of accelerometer data collected on a 63 year-old male with BMI 25, who was admitted to the Advanced Cardiac Care Center of Columbia University Medical Center and diagnosed with congestive heart failure (CHF)"
-  )
-```
+_About the dataset_
+The above is a snapshot of accelerometer data collected for a given individual diagnosed with CHD.There are `r nrow(accel_df)` observations. The variables in this dataset contain information on the sequential days (from days `r accel_df %>% pull(day_id) %>% min()` to `r accel_df %>% pull(day_id) %>% max()` and for each minute within each day), as well as the day of the week. The accelerometer tracks activity which it quantifies as activity counts. 
 
 
-
-
-```{r}
-accel_df %>% 
-  group_by(day, week) %>%
-  summarize(
-    total_activity_per_day = sum(activity_count, na.rm = TRUE)
-  ) %>% #observations
-  knitr::kable(digits = 2)
-```
-
-
-```{r}
+_Trends from aggregating total activity over the day_
+```{r, echo = FALSE}
 accel_df %>% 
   group_by(day, week) %>%
   summarize(
@@ -117,13 +86,15 @@ accel_df %>%
 
 There are a few observable trends. As the weeks advanced, the patients activity level tended to remain stable on Mondays - Thursdays. From a given Friday to the next Friday (with one exception), activity levels overall seemed to increase. From a given Saturday to the following Saturday, it is possible that the patient may have neglected to wear the accelerometer due to the markedly decreased number of steps in the last two weeks relative to the precedeing three weeks. On Sundays, the activity levels also appeared to decrease although the accelerometer appeared to still be worn. Of course, given that the data collection is dependent on participant adherence to wearing an accelerometer 24 hours a day, this data is a best guess snapshot. To better inspect the missings a different visual format would be helpful. 
 
-```{r}
+_24-hour activity time courses for a given day of the week_
+
+```{r, echo = FALSE}
 accel_df %>% 
   group_by(min_24h, day) %>% 
   ggplot(aes(x = min_24h, y = activity_count, color = day)) + 
   geom_point(alpha = .3) +
   labs(
-    x = "Minutes in a Day",
+    x = "Time in a 24-Hr Day",
     y = "Activity Counts",
     title = "CHF Patient Activity Level Over the Course of a Day") + 
   scale_x_continuous(
@@ -135,15 +106,15 @@ accel_df %>%
 
 
 
-The patient's activity level/score did not exceed 2500 per minute across most days. The patient was more active after 6AM overall, and tended to break the 2500 threshold particularly around or before 12PM, or around 4PM or around 9PM.These were more likely to occur on Sundays, Saturdays, Wednesdays, and Fridays. 
+Of note, the data was originally collected in minutes per day but were relabeled with time corresponding to 24-hr time period for the reader's ease. The patient's activity level/score did not exceed 2500 per minute across most days. The patient was more active after 6AM overall, and tended to break the 2500 threshold particularly around or around 12PM; 4PM; 9PM. These were more likely to occur on Sundays, Saturdays, Wednesdays, and Fridays. 
 
 
 ## Problem 3
 
 
+_Step 1: Explore the Data_
 
-
-```{r}
+```{r, eval = FALSE}
 ny_noaa %>% 
   mutate(
     tmax = as.numeric(tmax),
@@ -153,8 +124,12 @@ ny_noaa %>%
 ```
 
 
-There are `r nrow(ny_noaa)` observations and `r ncol(ny_noaa)` variables. Specifically, there is weather data, such as the ID, the date, the precipitation, snow, snow and wind, max temperature and minimum temperature.In terms of missing data, snow depth (`snwd`) has the largest proportion of missing data relative to snow, precipitation, tmax, and tmin. There are 591786 missing values for snwd, 381221 missing values for snow, 145838 missing values for precipitation, 1134358 missing values for maximum temperature, and 1134420 missing values for minimum temperature.
+There are `r nrow(ny_noaa)` observations and `r ncol(ny_noaa)` variables. Specifically, there is weather data, such as the ID, the date, the precipitation (`prcp`), snow (`snow`), snow depth (`snwd`), max temperature (`tmax`) and minimum temperature (`tmin`).In terms of missing data, snow depth  has the largest proportion of missing data relative to snow, precipitation, tmax, and tmin. There are 591786 missing values for snwd, 381221 missing values for snow, 145838 missing values for precipitation, 1134358 missing values for maximum temperature, and 1134420 missing values for minimum temperature. Of note the original units for precipitation is in tenths of mm,  snowfall and snow depth are in millimeters, and temeprature is in tenths of degrees Celsius (C). These units will be changed in the following step.
 
+_Step 2: Clean the Data_
+
+* Snow, Snow depth, and precipitation is changed to cm
+* Temperature is changed to degrees C
 
 ```{r, echo = FALSE}
 ny_noaa_tidy = 
@@ -196,15 +171,13 @@ ny_noaa_tidy =
 
 ```
 
-For snowfall, what are the most commonly observed values? 
-```{r}
-ny_noaa_tidy %>% 
-  count(
-    snow) %>% 
-  arrange(desc(n)) 
-
+```{r, echo = FALSE}
+head(ny_noaa_tidy)
 ```
-```{r}
+
+_Step 3: For snowfall, what are the most commonly observed values?_
+`
+```{r, eval = FALSE}
 
 ny_noaa_tidy %>% 
   group_by(snow) %>% 
@@ -213,13 +186,12 @@ ny_noaa_tidy %>%
   arrange(desc(n_obs))
 ```
 
-  * The most commonly observed value of snow is 0cm (also: 0 mm)
+  * The most commonly observed value of snow is 0cm (also: 0 mm in the original units)
   
+_Step 4: Make a two-panel plot showing the average max temperature in January and in July in each station across years._
 
-Make a two-panel plot showing the average max temperature in January and in July in each station across years. Is there any observable / interpretable structure? Any outliers?
 
-
-```{r}
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
 ny_noaa_tidy %>%
     filter(
     month %in% c("January","July")) %>% 
@@ -235,7 +207,7 @@ ny_noaa_tidy %>%
   labs(
     x = "Years",
     y = "Maximum Daily Temp (C)",
-    title = "Line Graphs of daily temp extremes in June and July",
+    title = "Comparing daily temp extremes in June and July (1980 - 2010)",
     caption = "Data came from the Rnooa package",
     color = "Max Temp (C)"
     ) +
@@ -245,13 +217,10 @@ ny_noaa_tidy %>%
 
 ```
 
+* Overall, on average each station could be said to be in lower temperatures (as measured in Celsius) in January and have higher on average temperatures in July. Broadly, there is a range in January that may be observed varying from -1000 C to 1000 C and a range of 2000 C to 3000 C in July. These trends and ranges are apparently consistent from 1980 to 2020. There are some outliers in January (i.e. circa 1980 and 2000) but they are not as extreme. In July however, the outliers are more dramatic, particularly sometime in the late 1980s.  
 
 
-_Trends observed_
-In general, m
-
-Make a two-panel plot showing (i) tmax vs tmin for the full dataset (note that a scatterplot may not be the best option); 
-_office hours_ what is group = doing how do i differentiate the different Ids
+_Step 5: Make a two-panel plot showing (i) tmax vs tmin for the full dataset and (ii) make a plot showing the distribution of snowfall values greater than 0 and less than 100 separately by year_
 
 ```{r, echo = FALSE}
 temp_noaa_plot = 
@@ -272,7 +241,7 @@ temp_noaa_plot =
 
 
 
-and (ii) make a plot showing the distribution of snowfall values greater than 0 and less than 100 separately by year
+
 
 
 
@@ -299,7 +268,7 @@ snow_plot =
   
 ```
 
-```{r}
+```{r, echo = FALSE}
 snow_plot / temp_noaa_plot 
 ```
 
