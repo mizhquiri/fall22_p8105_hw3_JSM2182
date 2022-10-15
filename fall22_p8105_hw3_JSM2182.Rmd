@@ -223,6 +223,7 @@ ny_noaa_tidy %>%
 _Step 5: Make a two-panel plot showing (i) tmax vs tmin for the full dataset and (ii) make a plot showing the distribution of snowfall values greater than 0 and less than 100 separately by year_
 
 ```{r, echo = FALSE}
+
 temp_noaa_plot = 
   ny_noaa_tidy %>%
   group_by(year) %>% 
@@ -235,7 +236,8 @@ temp_noaa_plot =
     y = "Maximum Daily Temp (C)",
     title = "Hex Plot Comparing Daily Temperature Highs and Lows",
     caption = "Data came from the Rnooa package"
-  ) 
+  ) + 
+  theme(legend.position = "right")
 
 ```
 
@@ -246,6 +248,8 @@ temp_noaa_plot =
 
 
 ```{r, echo = FALSE}
+
+
 snow_plot = 
   ny_noaa_tidy %>% 
   group_by(year) %>% 
@@ -263,12 +267,18 @@ snow_plot =
     x = "Year",
     y = "Snow (mm)",
     title = "Distribution of Snow Samples greater than 0 but lower than 100",
-    caption = "Data came from the Rnooa package")
+    caption = "Data came from the Rnooa package") 
   
   
 ```
 
 ```{r, echo = FALSE}
+knitr::opts_chunk$set(
+  fig.width = 6,
+  fig.height = 24
+)
+
+
 snow_plot / temp_noaa_plot 
 ```
 
